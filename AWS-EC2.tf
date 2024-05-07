@@ -65,10 +65,10 @@ resource "aws_security_group" "instance_sg" {
 
 variable "github_sha" {}
 
-output "name" {
+output "ippublico1" {
     value = aws_instance.Linux01.public_ip  
 }
 
-output "name" {
+output "ippublico2" {
     value = aws_instance.Linux02.public_ip  
 }
