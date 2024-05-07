@@ -4,33 +4,42 @@ provider "aws" {
     shared_credentials_files =["./aws/config"]
 }
 
-resource "aws_instance" "ec2_instance" {
+resource "aws_instance" "Linux01" {
     ami           = "ami-07caf09b362be10b8"
     instance_type = "t2.micro"
-    subnet_id     = "subnet-05add974630bf33ac" # ID da Subnet
+    subnet_id     = "subnet-0aaa8b96b14a12d6e" # ID da Subnet
     vpc_security_group_ids = ["${aws_security_group.instance_sg.id}"]
 
     key_name = "vockey"
 
-    user_data = <<-EOF
-                #!/bin/bash
-                yum update -y
-                yum install -y docker
-                service docker start
-                usermod -a -G docker ec2-user
-                docker push samvieira201547/apicontainer:${var.github_sha}
-                docker run -d -p 8080:8080 --name api-container samvieira201547/apicontainer:${var.github_sha}
-                EOF
+
 
     tags = {
         Name = "EC2_Instance-alpine-0"
     }
 }
 
+
+resource "aws_instance" "Linux02" {
+    ami           = "ami-07caf09b362be10b8"
+    instance_type = "t2.micro"
+    subnet_id     = "subnet-0193ff8cfa01c939c" # ID da Subnet
+    vpc_security_group_ids = ["${aws_security_group.instance_sg.id}"]
+
+    key_name = "vockey"
+
+
+
+    tags = {
+        Name = "EC2_Instance-alpine-1"
+    }
+}
+
+
 resource "aws_security_group" "instance_sg" {
   name        = "instance_sg-5"
   description = "Allow SSH and HTTP inbound traffic"
-  vpc_id      = "vpc-00c594a34fafbb052"
+  vpc_id      = "vpc-09d32ed0ee55b9bf7"
 
   ingress {
     from_port   = 22
@@ -57,5 +66,9 @@ resource "aws_security_group" "instance_sg" {
 variable "github_sha" {}
 
 output "name" {
-    value = aws_instance.ec2_instance.public_ip  
+    value = aws_instance.Linux01.public_ip  
+}
+
+output "name" {
+    value = aws_instance.Linux02.public_ip  
 }
