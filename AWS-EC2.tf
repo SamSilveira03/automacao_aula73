@@ -1,45 +1,52 @@
 provider "aws" {
-    region = "us-east-1"
-    shared_config_files =["./aws/config"]
-    shared_credentials_files =["./aws/config"]
+ region = "us-east-1"
+ shared_config_files      = [".aws/config"]
+ shared_credentials_files = [".aws/config"]
 }
 
-resource "aws_instance" "Linux01" {
+resource "aws_efs_file_system" "efs" {
+  creation_token = "deca"
+
+  tags = {
+    Name = "decasite"
+  }
+}
+
+resource "aws_instance" "ec2_instance1" {
+   count = 2
     ami           = "ami-07caf09b362be10b8"
     instance_type = "t2.micro"
-    subnet_id     = "subnet-0aaa8b96b14a12d6e" # ID da Subnet
+    subnet_id     = "subnet-082e5999451566ed1" # ID da Subnet
     vpc_security_group_ids = ["${aws_security_group.instance_sg.id}"]
 
     key_name = "vockey"
 
-
+     user_data = <<-EOF
+              #!/bin/bash
+              sudo yum update -y
+              sudo yum install -y httpd git
+              sudo systemctl start httpd
+              sudo systemctl enable httpd
+              sudo yum install -y amazon-efs-utils
+              sudo mkdir /mnt/efs
+              sudo mount -t efs ${aws_efs_file_system.efs.id}:/ /mnt/efs
+              sudo rm -rf /var/www/html
+              sudo git clone https://github.com/FofuxoSibov/sitebike /mnt/efs
+              sudo ln -s /mnt/efs /var/www/html
+              EOF
 
     tags = {
-        Name = "EC2_Instance-alpine-0"
+      Name = "server-${count.index}"
     }
 }
 
 
-resource "aws_instance" "Linux02" {
-    ami           = "ami-07caf09b362be10b8"
-    instance_type = "t2.micro"
-    subnet_id     = "subnet-0193ff8cfa01c939c" # ID da Subnet
-    vpc_security_group_ids = ["${aws_security_group.instance_sg.id}"]
-
-    key_name = "vockey"
-
-
-
-    tags = {
-        Name = "EC2_Instance-alpine-1"
-    }
-}
 
 
 resource "aws_security_group" "instance_sg" {
-  name        = "instance_sg-5"
-  description = "Allow SSH and HTTP inbound traffic"
-  vpc_id      = "vpc-09d32ed0ee55b9bf7"
+  name        = "secgroup-deca"
+  description = "libera ssh http efs"
+  vpc_id      = "vpc-0d33c0bb711821d17"
 
   ingress {
     from_port   = 22
@@ -49,8 +56,14 @@ resource "aws_security_group" "instance_sg" {
   }
 
   ingress {
-    from_port   = 8080
-    to_port     = 8080
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port   = 2049
+    to_port     = 2049
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -64,11 +77,3 @@ resource "aws_security_group" "instance_sg" {
 }
 
 variable "github_sha" {}
-
-output "ippublico1" {
-    value = aws_instance.Linux01.public_ip  
-}
-
-output "ippublico2" {
-    value = aws_instance.Linux02.public_ip  
-}
