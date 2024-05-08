@@ -16,7 +16,7 @@ resource "aws_instance" "ec2_instance1" {
    count = 2
     ami           = "ami-07caf09b362be10b8"
     instance_type = "t2.micro"
-    subnet_id     = "subnet-082e5999451566ed1" # ID da Subnet
+    subnet_id     = "subnet-0c6d40d1aa6cc773b" # ID da Subnet
     vpc_security_group_ids = ["${aws_security_group.instance_sg.id}"]
 
     key_name = "vockey"
@@ -46,7 +46,7 @@ resource "aws_instance" "ec2_instance1" {
 resource "aws_security_group" "instance_sg" {
   name        = "secgroup-deca"
   description = "libera ssh http efs"
-  vpc_id      = "vpc-0d33c0bb711821d17"
+  vpc_id      = "vpc-0291c37cff9cbc471"
 
   ingress {
     from_port   = 22
