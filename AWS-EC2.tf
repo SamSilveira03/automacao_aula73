@@ -78,5 +78,3 @@ resource "aws_security_group" "instance_sg" {
 
 variable "github_sha" {}
 
-
-
